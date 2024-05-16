@@ -1,0 +1,23 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+menuconfig CHERRYUSB
+	tristate "enable CHERRYUSB"
+	default n
+	select HPM_USB_DRV
+	---help---
+		Enable CHERRYUSB component
+
+if CHERRYUSB
+
+config EXAMPLES_CHERRYUSB_PRIORITY
+	int "CHERRYUSB task priority"
+	default 100
+
+config EXAMPLES_CHERRYUSB_STACKSIZE
+	int "CHERRYUSB stack size"
+	default DEFAULT_TASK_STACKSIZE
+
+endif
