@@ -6,15 +6,10 @@
 #ifndef CHERRYUSB_CONFIG_H
 #define CHERRYUSB_CONFIG_H
 
-#define CHERRYUSB_VERSION     0x010200
-#define CHERRYUSB_VERSION_STR "v1.2.0"
-
+#include <nuttx/config.h>
 /* ================ USB common Configuration ================ */
 
 #define CONFIG_USB_PRINTF(...) printf(__VA_ARGS__)
-
-#define usb_malloc(size) malloc(size)
-#define usb_free(ptr)    free(ptr)
 
 #ifndef CONFIG_USB_DBG_LEVEL
 #define CONFIG_USB_DBG_LEVEL USB_DBG_INFO
@@ -23,10 +18,12 @@
 /* Enable print with color */
 #define CONFIG_USB_PRINTF_COLOR_ENABLE
 
-/* data align size when use dma */
+/* data align size when use dma or use dcache */
 #ifndef CONFIG_USB_ALIGN_SIZE
 #define CONFIG_USB_ALIGN_SIZE 4
 #endif
+
+//#define CONFIG_USB_DCACHE_ENABLE
 
 /* attribute data into no cache ram */
 #define USB_NOCACHE_RAM_SECTION __attribute__((section(".noncacheable")))
@@ -72,6 +69,10 @@
 #define CONFIG_USBDEV_MSC_VERSION_STRING "0.01"
 #endif
 
+/* move msc read & write from isr to while(1), you should call usbd_msc_polling in while(1) */
+// #define CONFIG_USBDEV_MSC_POLLING
+
+/* move msc read & write from isr to thread */
 // #define CONFIG_USBDEV_MSC_THREAD
 
 #ifndef CONFIG_USBDEV_MSC_PRIO
@@ -107,7 +108,7 @@
 #define CONFIG_USBHOST_MAX_EXTHUBS          1
 #define CONFIG_USBHOST_MAX_EHPORTS          4
 #define CONFIG_USBHOST_MAX_INTERFACES       8
-#define CONFIG_USBHOST_MAX_INTF_ALTSETTINGS 16
+#define CONFIG_USBHOST_MAX_INTF_ALTSETTINGS 8
 #define CONFIG_USBHOST_MAX_ENDPOINTS        4
 
 #define CONFIG_USBHOST_MAX_CDC_ACM_CLASS 4
@@ -119,7 +120,7 @@
 #define CONFIG_USBHOST_DEV_NAMELEN 16
 
 #ifndef CONFIG_USBHOST_PSC_PRIO
-#define CONFIG_USBHOST_PSC_PRIO 100
+#define CONFIG_USBHOST_PSC_PRIO 0
 #endif
 #ifndef CONFIG_USBHOST_PSC_STACKSIZE
 #define CONFIG_USBHOST_PSC_STACKSIZE 2048
@@ -134,7 +135,7 @@
 
 /* Ep0 max transfer buffer */
 #ifndef CONFIG_USBHOST_REQUEST_BUFFER_LEN
-#define CONFIG_USBHOST_REQUEST_BUFFER_LEN 2048
+#define CONFIG_USBHOST_REQUEST_BUFFER_LEN 512
 #endif
 
 #ifndef CONFIG_USBHOST_CONTROL_TRANSFER_TIMEOUT
@@ -161,7 +162,7 @@
  * you can change to 2K ~ 16K and must be larger than TCP RX windows size in order to avoid being overflow.
  */
 #ifndef CONFIG_USBHOST_CDC_NCM_ETH_MAX_RX_SIZE
-#define CONFIG_USBHOST_CDC_NCM_ETH_MAX_RX_SIZE (16*1024)
+#define CONFIG_USBHOST_CDC_NCM_ETH_MAX_RX_SIZE (2048)
 #endif
 /* Because lwip do not support multi pbuf at a time, so increasing this variable has no performance improvement */
 #ifndef CONFIG_USBHOST_CDC_NCM_ETH_MAX_TX_SIZE
@@ -171,8 +172,19 @@
 /* This parameter affects usb performance, and depends on (TCP_WND)tcp eceive windows size,
  * you can change to 2K ~ 16K and must be larger than TCP RX windows size in order to avoid being overflow.
  */
+#ifndef CONFIG_USBHOST_ASIX_ETH_MAX_RX_SIZE
+#define CONFIG_USBHOST_ASIX_ETH_MAX_RX_SIZE (2048)
+#endif
+/* Because lwip do not support multi pbuf at a time, so increasing this variable has no performance improvement */
+#ifndef CONFIG_USBHOST_ASIX_ETH_MAX_TX_SIZE
+#define CONFIG_USBHOST_ASIX_ETH_MAX_TX_SIZE (2048)
+#endif
+
+/* This parameter affects usb performance, and depends on (TCP_WND)tcp eceive windows size,
+ * you can change to 2K ~ 16K and must be larger than TCP RX windows size in order to avoid being overflow.
+ */
 #ifndef CONFIG_USBHOST_RTL8152_ETH_MAX_RX_SIZE
-#define CONFIG_USBHOST_RTL8152_ETH_MAX_RX_SIZE (16*1024)
+#define CONFIG_USBHOST_RTL8152_ETH_MAX_RX_SIZE (2048)
 #endif
 /* Because lwip do not support multi pbuf at a time, so increasing this variable has no performance improvement */
 #ifndef CONFIG_USBHOST_RTL8152_ETH_MAX_TX_SIZE
@@ -196,23 +208,23 @@
 #endif
 
 #ifndef CONFIG_USBDEV_EP_NUM
-#define CONFIG_USBDEV_EP_NUM USB_SOC_DCD_MAX_ENDPOINT_COUNT
+#define CONFIG_USBDEV_EP_NUM 8
 #endif
 
-#ifndef CONFIG_HPM_USBD_BASE
-#define CONFIG_HPM_USBD_BASE HPM_USB0_BASE
-#endif
-#ifndef CONFIG_HPM_USBD_IRQn
-#define CONFIG_HPM_USBD_IRQn IRQn_USB0
-#endif
+/* When your chip hardware supports high-speed and wants to initialize it in high-speed mode, the relevant IP will configure the internal or external high-speed PHY according to CONFIG_USB_HS. */
+// #define CONFIG_USB_HS
 
 /* ---------------- FSDEV Configuration ---------------- */
 //#define CONFIG_USBDEV_FSDEV_PMA_ACCESS 2 // maybe 1 or 2, many chips may have a difference
 
 /* ---------------- DWC2 Configuration ---------------- */
-// #define CONFIG_USB_DWC2_RXALL_FIFO_SIZE (320)
+/* (5 * number of control endpoints + 8) + ((largest USB packet used / 4) + 1 for
+ * status information) + (2 * number of OUT endpoints) + 1 for Global NAK
+ */
+// #define CONFIG_USB_DWC2_RXALL_FIFO_SIZE (1024 / 4)
+/* IN Endpoints Max packet Size / 4 */
 // #define CONFIG_USB_DWC2_TX0_FIFO_SIZE (64 / 4)
-// #define CONFIG_USB_DWC2_TX1_FIFO_SIZE (512 / 4)
+// #define CONFIG_USB_DWC2_TX1_FIFO_SIZE (1024 / 4)
 // #define CONFIG_USB_DWC2_TX2_FIFO_SIZE (64 / 4)
 // #define CONFIG_USB_DWC2_TX3_FIFO_SIZE (64 / 4)
 // #define CONFIG_USB_DWC2_TX4_FIFO_SIZE (0 / 4)
@@ -220,6 +232,8 @@
 // #define CONFIG_USB_DWC2_TX6_FIFO_SIZE (0 / 4)
 // #define CONFIG_USB_DWC2_TX7_FIFO_SIZE (0 / 4)
 // #define CONFIG_USB_DWC2_TX8_FIFO_SIZE (0 / 4)
+
+// #define CONFIG_USB_DWC2_DMA_ENABLE
 
 /* ---------------- MUSB Configuration ---------------- */
 // #define CONFIG_USB_MUSB_SUNXI
@@ -233,25 +247,17 @@
 #define CONFIG_USBHOST_PIPE_NUM 10
 #endif
 
-#ifndef CONFIG_HPM_USBH_BASE
-#define CONFIG_HPM_USBH_BASE HPM_USB0_BASE
-#endif
-#ifndef CONFIG_HPM_USBH_IRQn
-#define CONFIG_HPM_USBH_IRQn IRQn_USB0
-#endif
-
 /* ---------------- EHCI Configuration ---------------- */
 
-#define CONFIG_USB_EHCI_HCCR_OFFSET     (0x100u)
+#define CONFIG_USB_EHCI_HCCR_OFFSET     (0x100)
 #define CONFIG_USB_EHCI_FRAME_LIST_SIZE 1024
 #define CONFIG_USB_EHCI_QH_NUM          CONFIG_USBHOST_PIPE_NUM
 #define CONFIG_USB_EHCI_QTD_NUM         3
 #define CONFIG_USB_EHCI_ITD_NUM         20
 // #define CONFIG_USB_EHCI_HCOR_RESERVED_DISABLE
-#define CONFIG_USB_EHCI_CONFIGFLAG
+// #define CONFIG_USB_EHCI_CONFIGFLAG
 // #define CONFIG_USB_EHCI_ISO
 // #define CONFIG_USB_EHCI_WITH_OHCI
-#define CONFIG_USB_EHCI_HPMICRO 1
 
 /* ---------------- OHCI Configuration ---------------- */
 #define CONFIG_USB_OHCI_HCOR_OFFSET (0x0)
@@ -268,9 +274,31 @@
  * (largest USB packet used / 4) + 1 for status information + 1 transfer complete +
  * 1 location each for Bulk/Control endpoint for handling NAK/NYET scenario
  */
-// #define CONFIG_USB_DWC2_RX_FIFO_SIZE ((1012 - CONFIG_USB_DWC2_NPTX_FIFO_SIZE - CONFIG_USB_DWC2_PTX_FIFO_SIZE) / 4)
+// #define CONFIG_USB_DWC2_RX_FIFO_SIZE ((1012 - CONFIG_USB_DWC2_NPTX_FIFO_SIZE - CONFIG_USB_DWC2_PTX_FIFO_SIZE))
 
 /* ---------------- MUSB Configuration ---------------- */
 // #define CONFIG_USB_MUSB_SUNXI
+
+/* ================ USB Dcache Configuration ==================*/
+
+#ifdef CONFIG_USB_DCACHE_ENABLE
+/* style 1*/
+// void usb_dcache_clean(uintptr_t addr, uint32_t size);
+// void usb_dcache_invalidate(uintptr_t addr, uint32_t size);
+// void usb_dcache_flush(uintptr_t addr, uint32_t size);
+
+/* style 2*/
+// #define usb_dcache_clean(addr, size)
+// #define usb_dcache_invalidate(addr, size)
+// #define usb_dcache_flush(addr, size)
+#endif
+
+#define CONFIG_USB_EHCI_HPMICRO 1
+#ifndef CONFIG_HPM_USBH_BASE
+#define CONFIG_HPM_USBH_BASE HPM_USB0_BASE
+#endif
+#ifndef CONFIG_HPM_USBH_IRQn
+#define CONFIG_HPM_USBH_IRQn IRQn_USB0
+#endif
 
 #endif

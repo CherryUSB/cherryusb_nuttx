@@ -15,9 +15,8 @@ int main(int argc, FAR char *argv[])
 
   board_init_usb_pins();
 
-  /* set irq priority */
-  intc_set_irq_priority(CONFIG_HPM_USBH_IRQn, 1);
   irq_attach(HPM_IRQn_USB0, hpm_ehci_interrupt, NULL);
+  up_enable_irq(HPM_IRQn_USB0);
 
   usbh_initialize(0, CONFIG_HPM_USBH_BASE);
   return 0;
