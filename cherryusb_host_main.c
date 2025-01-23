@@ -4,8 +4,8 @@
 
 static int hpm_ehci_interrupt(int irq, void *context, void *arg)
 {
-    extern void isr_usbh0(void);
-    isr_usbh0();
+    extern void USBH_IRQHandler(uint8_t busid);
+    USBH_IRQHandler(0);
     return 0;
 }
 
@@ -24,6 +24,7 @@ int main(int argc, FAR char *argv[])
 
 int lsusb_main(int argc, FAR char *argv[])
 {
-  printf("lsusb\r\n");
+  extern int lsusb_main(int argc, FAR char *argv[]);
+  lsusb(argc, argv);
   return 0;
 }

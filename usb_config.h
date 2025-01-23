@@ -74,7 +74,7 @@
 // #define CONFIG_USBDEV_MSC_POLLING
 
 /* move msc read & write from isr to thread */
-// #define CONFIG_USBDEV_MSC_THREAD
+#define CONFIG_USBDEV_MSC_THREAD
 
 #ifndef CONFIG_USBDEV_MSC_PRIO
 #define CONFIG_USBDEV_MSC_PRIO 4
@@ -310,4 +310,8 @@
 #define usb_ramaddr2phyaddr(addr) sys_address_to_core_local_mem(0, addr)
 #endif
 
+#define USBD_USE_CUSTOM_ISR 1
+#define USBH_USE_CUSTOM_ISR 1
+
+#define CONFIG_USB_HS
 #endif

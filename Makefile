@@ -41,13 +41,21 @@ CSRCS += cherryusb/port/ehci/usb_glue_hpm.c
 CSRCS += cherryusb/osal/usb_osal_nuttx.c
 CSRCS += cherryusb/platform/nuttx/usbh_net.c
 CSRCS += cherryusb/platform/nuttx/usbh_fs.c
+CSRCS += cherryusb/platform/nuttx/usbh_serial.c
 
-PROGNAME  = cherryusb lsusb
+CSRCS += cherryusb/core/usbd_core.c
+CSRCS += cherryusb/class/msc/usbd_msc.c
+CSRCS += cherryusb/class/cdc/usbd_cdc_acm.c
+CSRCS += cherryusb/port/hpm/usb_dc_hpm.c
+CSRCS += cherryusb/platform/nuttx/usbd_fs.c
+CSRCS += cherryusb/platform/nuttx/usbd_cdcacm.c
+
+PROGNAME  = cherryusb_host cherryusb_device lsusb
 PRIORITY  = $(CONFIG_EXAMPLES_CHERRYUSB_PRIORITY)
 STACKSIZE = $(CONFIG_EXAMPLES_CHERRYUSB_STACKSIZE)
 MODULE    = $(CONFIG_CHERRYUSB)
 
-MAINSRC = cherryusb_main.c
+MAINSRC = cherryusb_host_main.c cherryusb_device_main.c
 
 cherryusb:
 	$(Q) echo "Downloading cherryusb from github"
