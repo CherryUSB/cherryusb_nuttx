@@ -7,6 +7,7 @@
 #define CHERRYUSB_CONFIG_H
 
 #include <nuttx/config.h>
+#include "hpm_misc.h"
 /* ================ USB common Configuration ================ */
 
 #define CONFIG_USB_PRINTF(...) printf(__VA_ARGS__)
@@ -299,6 +300,14 @@
 #endif
 #ifndef CONFIG_HPM_USBH_IRQn
 #define CONFIG_HPM_USBH_IRQn IRQn_USB0
+#endif
+
+#ifndef usb_phyaddr2ramaddr
+#define usb_phyaddr2ramaddr(addr) core_local_mem_to_sys_address(0, addr)
+#endif
+
+#ifndef usb_ramaddr2phyaddr
+#define usb_ramaddr2phyaddr(addr) sys_address_to_core_local_mem(0, addr)
 #endif
 
 #endif
